@@ -8,6 +8,7 @@ import configparser
 import sys
 import time
 
+LOG_LEVEL = os.environ.get('SYNC_INTERVAL_SECONDS')
 DEV = False
 VER = '1.2.1'
 
