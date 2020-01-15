@@ -2,7 +2,7 @@
 Syncs two Radarr/Sonarr/Lidarr servers through the web API.
 
 ### Configuration
- 1. Edit the Config.txt file and enter your servers URLs and API keys for each server.  
+ 1. Edit the config.conf file and enter your servers URLs and API keys for each server.  
  2. Add the profile id and movie path for the radarr instance the movies will be synced to
     ```ini
     [radarrA]
@@ -27,7 +27,7 @@ Syncs two Radarr/Sonarr/Lidarr servers through the web API.
     profile_id = 1
     path = /data/4k_Movies
  
-  34 Or if you want to sync two lidarr instances:
+ 4. Or if you want to sync two lidarr instances:
     ```ini
     [lidarrA]
     url = https://example.com:443
@@ -42,7 +42,7 @@ Syncs two Radarr/Sonarr/Lidarr servers through the web API.
 
     **Note**: you cannot have a mix of radarr, lidarr, or sonarr config setups at the same time.
 
- 4. By default Syncarr will sync unidirectionally from instance A to instance B but you can add bidirectional syncing with:
+ 5. By default Syncarr will sync unidirectionally from instance A to instance B but you can add bidirectional syncing with:
      ```ini
      [general]
      sync_bidirectionally = 1
