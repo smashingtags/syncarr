@@ -8,46 +8,10 @@ import configparser
 import sys
 import time
 
-DEV = False
+DEV = os.environ.get('DEV', False)
+
+
 VER = '1.2.0'
-########################################################################################################################
-
-# load config file
-BASE_CONFIG = 'config.conf'
-if DEV:
-    settingsFilename = os.path.join(os.getcwd(), 'dev-{}'.format(BASE_CONFIG))
-else:
-    settingsFilename = os.path.join(os.getcwd(), BASE_CONFIG)
-
-config = configparser.ConfigParser()
-config.read(settingsFilename)
-
-is_in_docker = os.environ.get('IS_IN_DOCKER')
-radarr_sync_interval_seconds = os.environ.get('SYNC_INTERVAL_SECONDS')
-if radarr_sync_interval_seconds:
-    radarr_sync_interval_seconds = int(radarr_sync_interval_seconds)
-
-########################################################################################################################
-# setup logger
-logger = logging.getLogger()
-if DEV:
-    logger.setLevel(logging.DEBUG)
-else: 
-    logger.setLevel(logging.INFO)
-logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-
-# log to txt file
-fileHandler = logging.FileHandler("./output.txt")
-fileHandler.setFormatter(logFormatter)
-logger.addHandler(fileHandler)
-
-# log to std out
-consoleHandler = logging.StreamHandler(sys.stdout)
-consoleHandler.setFormatter(logFormatter)
-logger.addHandler(consoleHandler)
-
-logger.debug('Syncarr Version {}'.format(VER))
-########################################################################################################################
 
 def ConfigSectionMap(section):
     '''get all config options from config file'''
@@ -75,6 +39,50 @@ def get_config_value(env_key, config_key, config_section):
         value = _config.get(config_key)
 
     return value
+
+
+
+########################################################################################################################
+
+# load config file
+BASE_CONFIG = 'config.conf'
+if DEV:
+    settingsFilename = os.path.join(os.getcwd(), 'dev-{}'.format(BASE_CONFIG))
+else:
+    settingsFilename = os.path.join(os.getcwd(), BASE_CONFIG)
+
+config = configparser.ConfigParser()
+config.read(settingsFilename)
+
+is_in_docker = os.environ.get('IS_IN_DOCKER')
+radarr_sync_interval_seconds = os.environ.get('SYNC_INTERVAL_SECONDS')
+if radarr_sync_interval_seconds:
+    radarr_sync_interval_seconds = int(radarr_sync_interval_seconds)
+
+########################################################################################################################
+# setup logger
+
+# CRITICAL 50, ERROR 40, WARNING 3, INFO 20, DEBUG 10, NOTSET 0
+LOG_LEVEL = get_config_value('LOG_LEVEL', 'log_level', 'general') or 20
+
+logger = logging.getLogger()
+logger.setLevel(LOG_LEVEL)
+
+logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+
+# log to txt file
+fileHandler = logging.FileHandler("./output.txt")
+fileHandler.setFormatter(logFormatter)
+logger.addHandler(fileHandler)
+
+# log to std out
+consoleHandler = logging.StreamHandler(sys.stdout)
+consoleHandler.setFormatter(logFormatter)
+logger.addHandler(consoleHandler)
+
+logger.debug('Syncarr Version {}'.format(VER))
+########################################################################################################################
+
 
 ########################################################################################################################
 # get config settings from ENV or config files for Radarr
@@ -158,8 +166,8 @@ if radarrA_url and radarrB_url:
     content_id_key = 'tmdbId'
 
     is_radarr = True
-    instanceA_is_v3 = False if radarrA_is_version_3 == 1 else True
-    instanceB_is_v3 = False if radarrB_is_version_3 == 1 else True
+    instanceA_is_v3 = False if radarrA_is_version_3 else True
+    instanceB_is_v3 = False if radarrB_is_version_3 else True
 
 elif lidarrA_url and lidarrB_url:
     assert lidarrA_url
@@ -176,9 +184,9 @@ elif lidarrA_url and lidarrB_url:
     instanceB_profile_id = lidarrB_profile_id
     instanceB_path = lidarrB_path
 
-    api_content_path = 'api/movie'
-    api_search_path = 'api/command'
-    content_id_key = 'tmdbId'
+    api_content_path = 'api/v1/artist'
+    api_search_path = 'api/v1/command'
+    content_id_key = 'foreignArtistId'
 
     is_lidarr = True
     instanceA_is_v3 = True
@@ -206,6 +214,7 @@ elif sonarrA_url and sonarrB_url:
     is_sonarr = True
     instanceA_is_v3 = True
     instanceB_is_v3 = True
+
 ########################################################################################################################
 
 assert instanceA_url

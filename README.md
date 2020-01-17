@@ -108,6 +108,7 @@ syncarr:
         LIDARR_B_PROFILE_ID: 1
         LIDARR_B_PATH: /data/4k_Movies
         SYNC_INTERVAL_SECONDS: 300
+```
 
 #### Docker
 For just plain docker (Radarr example):
@@ -121,6 +122,15 @@ docker run -it --rm --name syncarr -e RADARR_A_URL=https://example.com:443 -e RA
  * 2x Radarr/Sonarr/Lidarr servers
  * Install requirements.txt
 
+#### Debugging
+If you need to debug syncarr then you can either set the log level through the config file:
+
+```ini
+[general]
+log_level = 10
+```
+    
+Or in docker, set the `LOG_LEVEL` ENV var. Default is set to `20` (info only) but you can set to `10` to get debug info as well. When pasting debug logs online, **make sure to remove any apikeys and any other data you don't want others to see.**
 
 
 #### Disclaimer

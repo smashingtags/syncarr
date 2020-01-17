@@ -15,18 +15,18 @@ def get_new_content_payload(content, instance_path, instance_profile_id, instanc
     images = content.get('images')
     for image in images:
         image['url'] = '{0}{1}'.format(instanceB_url, image.get('url'))
-        
+
     payload = {
-        'title': content.get('title'),
-        'titleSlug': content.get('titleSlug'),
-        'images': images,
-        'qualityProfileId': content.get('qualityProfileId'),
+        content_id_key: content.get(content_id_key),
         'monitored': content.get('monitored'),
         'rootFolderPath': instance_path,
-        content_id_key: content.get(content_id_key),
+        'images': images
     }
 
     if is_sonarr:
+        payload['title'] = content.get('title'),
+        payload['titleSlug'] = content.get('titleSlug'),
+        payload['qualityProfileId'] = content.get('qualityProfileId'),
         payload['seasons'] = content.get('seasons')
         payload['tvRageId'] = content.get('tvRageId')
         payload['seasonFolder'] = content.get('seasonFolder')
@@ -36,11 +36,21 @@ def get_new_content_payload(content, instance_path, instance_profile_id, instanc
         payload['useSceneNumbering'] = content.get('useSceneNumbering')
         payload['addOptions'] = content.get('addOptions')
 
-    else:
-        payload['minimumAvailability'] = content.get('minimumAvailability')
+    elif is_radarr:
+        payload['title'] = content.get('title'),
         payload['tmdbId'] = content.get('tmdbId')
+        payload['titleSlug'] = content.get('titleSlug'),
+        payload['qualityProfileId'] = content.get('qualityProfileId'),
+        payload['minimumAvailability'] = content.get('minimumAvailability')
         payload['year'] = content.get('year')
         payload['profileId'] = instance_profile_id
+    
+    elif is_lidarr:
+        payload['artistName'] = content.get('artistName')
+        payload['addOptions'] = content.get('addOptions', {})
+        payload['albumFolder'] = content.get('albumFolder')
+        payload['qualityProfileId'] = instance_profile_id
+        payload['metadataProfileId'] = content.get('metadataProfileId')
 
     logger.debug(payload)
     return payload
