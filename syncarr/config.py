@@ -9,7 +9,11 @@ import sys
 import time
 
 DEV = os.environ.get('DEV', False)
+<<<<<<< HEAD
 VER = '1.3.0'
+=======
+VER = '1.3.1'
+>>>>>>> master
 
 def ConfigSectionMap(section):
     '''get all config options from config file'''
