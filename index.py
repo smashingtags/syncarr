@@ -100,7 +100,8 @@ def sync_servers(instanceA_contents, instanceB_contentIds, instanceB_path, insta
 
             # if given this, we want to filter from instance A by profile id
             if profile_filter_id:
-                if profile_filter_id != content.get('qualityProfileId'): continue
+                content_profile_id = content.get('qualityProfileId') or content.get('profileId')
+                if profile_filter_id != content_profile_id: continue
 
             title = content.get('title') or content.get('artistName')
             logging.info('syncing content title "{0}"'.format(title))
