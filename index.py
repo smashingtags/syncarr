@@ -54,21 +54,34 @@ def get_new_content_payload(content, instance_path, instance_profile_id, instanc
     logger.debug(payload)
     return payload
 
+def get_path(instance_url, api_path, key, checkV3=False):
+    global api_version
+    if checkV3:
+        api_version = 'v3'
+
+    url = f"{instance_url}/{api_version}/{root_api_path}/{api_path}?apikey={key}"
+    print(url)
+    return url
+
+def get_status_path(instance_url, key, checkV3):
+    url = get_path(instance_url, api_status_path, key, checkV3)
+    logger.debug('get_status_path: {}'.format(url))
+    return url
 
 def get_content_path(instance_url, key):
-    url = '{0}/{1}?apikey={2}'.format(instance_url, api_content_path, key)
+    url = get_path(instance_url, api_content_path, key)
     logger.debug('get_content_path: {}'.format(url))
     return url
 
 
 def get_search_path(instance_url, key):
-    url = '{0}/{1}?apikey={2}'.format(instance_url, api_search_path, key)
+    url = get_path(instance_url, api_search_path, key)
     logger.debug('get_search_path: {}'.format(url))
     return url
 
 
 def get_profile_path(instance_url, key):
-    url = '{0}/{1}?apikey={2}'.format(instance_url, api_profile_path, key)
+    url = get_path(instance_url, instance_key, api_profile_path, key)
     logger.debug('get_profile_path: {}'.format(url))
     return url
 
@@ -160,6 +173,31 @@ def get_instance_contents(instance_url, instance_key, instance_session, instance
     return instance_contents, instance_contentIds
 
 
+def check_status(instance_session, instance_url, instance_key, instance_name='', checkV3=False):
+    instance_status_url = get_status_path(instance_url, instance_key, checkV3)
+    error_message = f'Could not connect to instance{instance_name}: {instance_status_url}'
+    status_response = None
+
+    try:
+        status_response = instance_session.get(instance_status_url)
+
+        # only test again if not lidarr and we haven't tested v3 already
+        if status_response.status_code != 200 and not checkV3 and not is_lidarr:
+            status_response = check_status(instance_session, instance_url, instance_key, instance_name, checkV3=True)
+        elif status_response.status_code != 200:
+            logger.error(error_message)
+            sys.exit(0)
+    except:
+        if not checkV3 and not is_lidarr:
+            status_response = check_status(instance_session, instance_url, instance_key, instance_name, checkV3=True)
+
+    if status_response is None:
+        logger.error(error_message)
+        sys.exit(0)
+
+    return status_response
+
+
 def sync_content():
     global instanceA_profile_id, instanceA_profile, instanceB_profile_id, instanceB_profile, instanceA_profile_filter, instanceA_profile_filter_id, instanceB_profile_filter, instanceB_profile_filter_id
 
@@ -168,7 +206,11 @@ def sync_content():
     instanceA_session.trust_env = False
     instanceB_session = requests.Session()
     instanceB_session.trust_env = False
-    
+
+    if not tested_api_version:
+        check_status(instanceA_session, instanceA_url, instanceA_key, instance_name='A')
+        check_status(instanceB_session, instanceB_url, instanceB_key, instance_name='B')
+            
     # if given a profile instead of a profile id then try to find the profile id
     if not instanceA_profile_id and instanceA_profile:
         instanceA_profile_id = get_profile_from_id(instanceA_session, instanceA_url, instanceA_key, instanceA_profile, 'A')

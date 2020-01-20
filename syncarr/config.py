@@ -8,7 +8,7 @@ import configparser
 import sys
 import time
 
-DEV = os.environ.get('DEV', True)
+DEV = os.environ.get('DEV', False)
 VER = '1.3.0'
 
 def ConfigSectionMap(section):
@@ -34,8 +34,8 @@ def get_config_value(env_key, config_key, config_section):
         return ''
 
 ########################################################################################################################
-
 # load config file
+
 BASE_CONFIG = 'config.conf'
 if DEV:
     settingsFilename = os.path.join(os.getcwd(), 'dev-{}'.format(BASE_CONFIG))
@@ -54,7 +54,7 @@ if instance_sync_interval_seconds:
 # setup logger
 
 # CRITICAL 50, ERROR 40, WARNING 3, INFO 20, DEBUG 10, NOTSET 0
-log_level = get_config_value('LOG_LEVEL', 'log_level', 'general') or 20
+log_level = get_config_value('LOG_LEVEL', 'log_level', 'general') or 10
 if log_level:
     log_level = int(log_level)
 
@@ -90,7 +90,6 @@ radarrA_profile_id = get_config_value('RADARR_A_PROFILE_ID', 'profile_id', 'rada
 radarrA_profile_filter = get_config_value('RADARR_A_PROFILE_FILTER', 'profile_filter', 'radarrA')
 radarrA_profile_filter_id = get_config_value('RADARR_A_PROFILE_FILTER_ID', 'profile_filter_id', 'radarrA')
 radarrA_path = get_config_value('RADARR_A_PATH', 'path', 'radarrA')
-radarrA_is_version_3 = get_config_value('RADARR_A_VERSION_3', 'version3', 'radarrA')
 
 radarrB_url = get_config_value('RADARR_B_URL', 'url', 'radarrB')
 radarrB_key = get_config_value('RADARR_B_KEY', 'key', 'radarrB')
@@ -99,7 +98,6 @@ radarrB_profile_id = get_config_value('RADARR_B_PROFILE_ID', 'profile_id', 'rada
 radarrB_profile_filter = get_config_value('RADARR_B_PROFILE_FILTER', 'profile_filter', 'radarrB')
 radarrB_profile_filter_id = get_config_value('RADARR_B_PROFILE_FILTER_ID', 'profile_filter_id', 'radarrB')
 radarrB_path = get_config_value('RADARR_B_PATH', 'path', 'radarrB')
-radarrB_is_version_3 = get_config_value('RADARR_B_VERSION_3', 'version3', 'radarrB')
 
 # get config settings from ENV or config files for Sonarr
 sonarrA_url = get_config_value('SONARR_A_URL', 'url', 'sonarrA')
@@ -173,19 +171,17 @@ instanceB_profile_id = ''
 instanceB_profile_filter = ''
 instanceB_path = ''
 
+root_api_path = 'api'
 api_content_path = '' # url path to add content
 api_search_path = '' # url path to search for content on RSS feeds
 api_profile_path = '' # url path to get quality profiles
+api_status_path = '' # url path to check on server status
 
 is_radarr = False
 is_sonarr = False
 is_lidarr = False
 
 content_id_key = '' # the unique id for a content item
-
-instanceA_is_v3 = False
-instanceB_is_v3 = False
-
 
 if radarrA_url and radarrB_url:
     instanceA_url = radarrA_url
@@ -204,15 +200,13 @@ if radarrA_url and radarrB_url:
     instanceB_profile_filter_id = radarrB_profile_filter_id
     instanceB_path = radarrB_path
 
-    api_content_path = 'api/movie'
-    api_search_path = 'api/command'
-    api_profile_path = 'api/profile'
+    api_content_path = 'movie'
+    api_search_path = 'command'
+    api_profile_path = 'profile'
+    api_status_path = 'system/status'
 
     content_id_key = 'tmdbId'
-
     is_radarr = True
-    instanceA_is_v3 = True if radarrA_is_version_3 else False
-    instanceB_is_v3 = True if radarrB_is_version_3 else False
 
 elif lidarrA_url and lidarrB_url:
     instanceA_url = lidarrA_url
@@ -231,15 +225,13 @@ elif lidarrA_url and lidarrB_url:
     instanceB_profile_filter_id = lidarrB_profile_filter_id
     instanceB_path = lidarrB_path
 
-    api_content_path = 'api/v1/artist'
-    api_search_path = 'api/v1/command'
-    api_profile_path = 'api/v1/qualityprofile'
+    api_content_path = 'artist'
+    api_search_path = 'command'
+    api_profile_path = 'qualityprofile'
+    api_status_path = ''
 
     content_id_key = 'foreignArtistId'
-
     is_lidarr = True
-    instanceA_is_v3 = True
-    instanceB_is_v3 = True
 
 elif sonarrA_url and sonarrB_url:
     instanceA_url = sonarrA_url
@@ -258,17 +250,17 @@ elif sonarrA_url and sonarrB_url:
     instanceB_profile_filter_id = sonarrB_profile_filter_id
     instanceB_path = sonarrB_path
 
-    api_content_path = 'api/v3/series'
-    api_search_path = 'api/command'
-    api_profile_path = 'api/v3/qualityprofile'
+    api_content_path = 'series'
+    api_search_path = 'command'
+    api_profile_path = 'qualityprofile'
+    api_status_path = ''
 
     content_id_key = 'tvdbId'
-
     is_sonarr = True
-    instanceA_is_v3 = True
-    instanceB_is_v3 = True
 
 ########################################################################################################################
+api_version = 'v1' if is_lidarr else 'v2' # try v2 then v3 if radarr/sonarr
+tested_api_version = False # only get api version once
 
 logger.debug({
     'instanceA_url': instanceA_url,
@@ -279,8 +271,6 @@ logger.debug({
     'instanceB_path': instanceB_path,
     'api_content_path': api_content_path,
     'api_search_path': api_search_path,
-    'instanceA_is_v3': instanceA_is_v3,
-    'instanceB_is_v3': instanceB_is_v3,
     'is_sonarr': is_sonarr,
     'is_lidarr': is_lidarr,
 })
