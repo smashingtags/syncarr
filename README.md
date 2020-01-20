@@ -1,7 +1,4 @@
 # Syncarr
-<<<<<<< HEAD
-Syncs two Radarr/Sonarr/Lidarr servers through the web API. Useful for syncing a 4k radarr/sonarr instance to a 1080p radarr/sonarr instance.
-=======
 Syncs two Radarr/Sonarr/Lidarr servers through the web API. Useful for syncing your 4k to 1080p media libraries.
 
 * Supports Radarr/Sonarr version 2 and 3.
@@ -10,7 +7,6 @@ Syncs two Radarr/Sonarr/Lidarr servers through the web API. Useful for syncing y
 * Supports Docker for multiple instances
 * Can set interval for syncing
 * Support two way sync (one way by default)
->>>>>>> master
 
 
 ## Configuration
