@@ -91,8 +91,8 @@ sonarrA_profile_filter = get_config_value(
     'SONARR_A_PROFILE_FILTER', 'profile_filter', 'sonarrA')
 sonarrA_profile_filter_id = get_config_value(
     'SONARR_A_PROFILE_FILTER_ID', 'profile_filter_id', 'sonarrA')
-sonarrA_language_filter = get_config_value('SONARR_A_LANGUAGE_FILTER', 'language_filter', 'sonarrA')
-sonarrA_language_filter_id = get_config_value('SONARR_A_LANGUAGE_FILTER_ID', 'language_filter_id', 'sonarrA')
+sonarrA_language = get_config_value('SONARR_A_LANGUAGE', 'language', 'sonarrA')
+sonarrA_language_id = get_config_value('SONARR_A_LANGUAGE_ID', 'language_id', 'sonarrA')
 
 
 sonarrB_url = get_config_value('SONARR_B_URL', 'url', 'sonarrB')
@@ -105,8 +105,8 @@ sonarrB_profile_filter = get_config_value(
     'SONARR_A_PROFILE_FILTER', 'profile_filter', 'sonarrB')
 sonarrB_profile_filter_id = get_config_value(
     'SONARR_A_PROFILE_FILTER_ID', 'profile_filter_id', 'sonarrB')
-sonarrB_language_filter = get_config_value('SONARR_B_LANGUAGE_FILTER', 'language_filter', 'sonarrB')
-sonarrB_language_filter_id = get_config_value('SONARR_B_LANGUAGE_FILTER_ID', 'language_filter_id', 'sonarrB')
+sonarrB_language = get_config_value('SONARR_B_LANGUAGE', 'language', 'sonarrB')
+sonarrB_language_id = get_config_value('SONARR_B_LANGUAGE_ID', 'language_id', 'sonarrB')
 
 # get config settings from ENV or config files for Lidarr
 lidarrA_url = get_config_value('LIDARR_A_URL', 'url', 'lidarrA')
@@ -279,8 +279,8 @@ elif sonarrA_url and sonarrB_url:
     instanceA_profile_id = sonarrA_profile_id
     instanceA_profile_filter = sonarrA_profile_filter
     instanceA_profile_filter_id = sonarrA_profile_filter_id
-    instanceA_language_id = sonarrA_language_filter
-    instanceA_language = sonarrA_language_filter_id
+    instanceA_language = sonarrA_language
+    instanceA_language_id = sonarrA_language_id
 
     instanceB_url = sonarrB_url
     instanceB_key = sonarrB_key
@@ -289,8 +289,8 @@ elif sonarrA_url and sonarrB_url:
     instanceB_profile_id = sonarrB_profile_id
     instanceB_profile_filter = sonarrB_profile_filter
     instanceB_profile_filter_id = sonarrB_profile_filter_id
-    instanceB_language_id = sonarrB_language_filter
-    instanceB_language = sonarrB_language_filter_id
+    instanceB_language = sonarrB_language
+    instanceB_language_id = sonarrB_language_id
 
 
     api_version = ''
@@ -337,6 +337,9 @@ def get_search_path(instance_url, key):
     return url
 
 def get_language_path(instance_url, key):
+    print('-'*20)
+    print(instance_url)
+    print('-'*20)
     url = get_path(instance_url, api_language_path, key)
     logger.debug('get_language_path: {}'.format(url))
     return url

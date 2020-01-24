@@ -69,9 +69,15 @@ def get_new_content_payload(content, instance_path, instance_profile_id, instanc
 
 def get_profile_from_id(instance_session, instance_url, instance_key, instance_profile, instance_name=''):
     instance_profile_url = get_profile_path(instance_url, instance_key)
-    instance_profiles = instance_session.get(instance_profile_url)
+    profiles_response = instance_session.get(instance_profile_url)
+    if profiles_response.status_code != 200:
+        logger.error(
+            f'Could not get profile id from {instance_profile_url}')
+        sys.exit(0)
+
+    instance_profiles = None
     try:
-        instance_profiles = instance_profiles.json()
+        instance_profiles = profiles_response.json()
     except:
         logger.error(
             f'Could not decode profile id from {instance_profile_url}')
@@ -92,14 +98,21 @@ def get_profile_from_id(instance_session, instance_url, instance_key, instance_p
 
 def get_language_from_id(instance_session, instance_url, instance_key, instance_language, instance_name=''):
     instance_language_url = get_language_path(instance_url, instance_key)
-    instance_languages = instance_session.get(instance_language_url)
+    language_response = instance_session.get(instance_language_url)
+    if language_response.status_code != 200:
+        logger.error(
+            f'Could not get language id from {instance_language_url} - only works on sonarr v3')
+        return None
+
+    instance_languages = None
     try:
-        instance_languages = instance_languages.json()
+        instance_languages = language_response.json()
     except:
         logger.error(
             f'Could not decode language id from {instance_language_url}')
         sys.exit(0)
 
+    instance_languages = instance_languages[0]['languages']
     language = next((item for item in instance_languages if item["name"].lower() == instance_language.lower()), False)
 
     if not language:
@@ -265,12 +278,24 @@ def sync_content():
 
     # if given language instead of language id then try to find the lanaguage id
     # only for sonarr v3
-    if is_sonarr and api_version == V3_API_PATH:
-        if instanceA_language_id and instanceA_language:
-            instanceA_language_id = get_language_from_id(instanceA_session, get_language_from_id, instanceA_key, instanceA_language, 'A')
+    if is_sonarr:
+        if not instanceA_language_id and instanceA_language:
+            instanceA_language_id = get_language_from_id(
+                instance_session=instanceA_session, 
+                instance_url=instanceA_url, 
+                instance_key=instanceA_key, 
+                instance_language=instanceA_language, 
+                instance_name='A'
+            )
 
         if not instanceB_language_id and instanceB_language:
-            instanceB_language_id = get_language_from_id(instanceB_session, instanceB_url, instanceB_key, instanceB_language, 'B')
+            instanceB_language_id = get_language_from_id(
+                instance_session=instanceB_session, 
+                instance_url=instanceB_url, 
+                instance_key=instanceB_key, 
+                instance_language=instanceB_language, 
+                instance_name='B'
+            )
     
     logger.debug({
         'instanceA_language_id': instanceA_language_id,
