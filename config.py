@@ -11,6 +11,8 @@ import configparser
 DEV = os.environ.get('DEV')
 VER = '1.4.1'
 
+V3_API_PATH = 'v3/'
+
 def ConfigSectionMap(section):
     '''get all config options from config file'''
     dict1 = {}
@@ -81,6 +83,7 @@ radarrB_path = get_config_value('RADARR_B_PATH', 'path', 'radarrB')
 # get config settings from ENV or config files for Sonarr
 sonarrA_url = get_config_value('SONARR_A_URL', 'url', 'sonarrA')
 sonarrA_key = get_config_value('SONARR_A_KEY', 'key', 'sonarrA')
+sonarrA_path = get_config_value('SONARR_A_PATH', 'path', 'sonarrA')
 sonarrA_profile = get_config_value('SONARR_A_PROFILE', 'profile', 'sonarrA')
 sonarrA_profile_id = get_config_value(
     'SONARR_A_PROFILE_ID', 'profile_id', 'sonarrA')
@@ -88,10 +91,13 @@ sonarrA_profile_filter = get_config_value(
     'SONARR_A_PROFILE_FILTER', 'profile_filter', 'sonarrA')
 sonarrA_profile_filter_id = get_config_value(
     'SONARR_A_PROFILE_FILTER_ID', 'profile_filter_id', 'sonarrA')
-sonarrA_path = get_config_value('SONARR_A_PATH', 'path', 'sonarrA')
+sonarrA_language_filter = get_config_value('SONARR_A_LANGUAGE_FILTER', 'language_filter', 'sonarrA')
+sonarrA_language_filter_id = get_config_value('SONARR_A_LANGUAGE_FILTER_ID', 'language_filter_id', 'sonarrA')
+
 
 sonarrB_url = get_config_value('SONARR_B_URL', 'url', 'sonarrB')
 sonarrB_key = get_config_value('SONARR_B_KEY', 'key', 'sonarrB')
+sonarrB_path = get_config_value('SONARR_B_PATH', 'path', 'sonarrB')
 sonarrB_profile = get_config_value('SONARR_B_PROFILE', 'profile', 'sonarrB')
 sonarrB_profile_id = get_config_value(
     'SONARR_B_PROFILE_ID', 'profile_id', 'sonarrB')
@@ -99,7 +105,8 @@ sonarrB_profile_filter = get_config_value(
     'SONARR_A_PROFILE_FILTER', 'profile_filter', 'sonarrB')
 sonarrB_profile_filter_id = get_config_value(
     'SONARR_A_PROFILE_FILTER_ID', 'profile_filter_id', 'sonarrB')
-sonarrB_path = get_config_value('SONARR_B_PATH', 'path', 'sonarrB')
+sonarrB_language_filter = get_config_value('SONARR_B_LANGUAGE_FILTER', 'language_filter', 'sonarrB')
+sonarrB_language_filter_id = get_config_value('SONARR_B_LANGUAGE_FILTER_ID', 'language_filter_id', 'sonarrB')
 
 # get config settings from ENV or config files for Lidarr
 lidarrA_url = get_config_value('LIDARR_A_URL', 'url', 'lidarrA')
@@ -179,17 +186,22 @@ if (
 # get generic instanceA/B variables
 instanceA_url = ''
 instanceA_key = ''
+instanceA_path = ''
 instanceA_profile = ''
 instanceA_profile_id = ''
 instanceA_profile_filter = ''
-instanceA_path = ''
+instanceA_language_id = ''
+instanceA_language = ''
 
 instanceB_url = ''
 instanceB_key = ''
+instanceB_path = ''
 instanceB_profile = ''
 instanceB_profile_id = ''
 instanceB_profile_filter = ''
-instanceB_path = ''
+instanceB_language_id = ''
+instanceB_language = ''
+
 
 api_version = 'v1/' # we are going to detect what API version we are on
 tested_api_version = False # only get api version once
@@ -199,6 +211,7 @@ api_content_path = '' # url path to add content
 api_search_path = '' # url path to search for content on RSS feeds
 api_profile_path = '' # url path to get quality profiles
 api_status_path = '' # url path to check on server status
+api_language_path = '' # url to get lanaguge profiles
 
 is_radarr = False
 is_sonarr = False
@@ -261,25 +274,31 @@ elif lidarrA_url and lidarrB_url:
 elif sonarrA_url and sonarrB_url:
     instanceA_url = sonarrA_url
     instanceA_key = sonarrA_key
+    instanceA_path = sonarrA_path
     instanceA_profile = sonarrA_profile
     instanceA_profile_id = sonarrA_profile_id
     instanceA_profile_filter = sonarrA_profile_filter
     instanceA_profile_filter_id = sonarrA_profile_filter_id
-    instanceA_path = sonarrA_path
+    instanceA_language_id = sonarrA_language_filter
+    instanceA_language = sonarrA_language_filter_id
 
     instanceB_url = sonarrB_url
     instanceB_key = sonarrB_key
+    instanceB_path = sonarrB_path
     instanceB_profile = sonarrB_profile
     instanceB_profile_id = sonarrB_profile_id
     instanceB_profile_filter = sonarrB_profile_filter
     instanceB_profile_filter_id = sonarrB_profile_filter_id
-    instanceB_path = sonarrB_path
+    instanceB_language_id = sonarrB_language_filter
+    instanceB_language = sonarrB_language_filter_id
+
 
     api_version = ''
     api_content_path = 'series'
     api_search_path = 'command'
     api_profile_path = 'profile'
     api_status_path = 'system/status'
+    api_language_path = 'languageprofile'
 
     content_id_key = 'tvdbId'
     is_sonarr = True
@@ -292,9 +311,9 @@ def get_path(instance_url, api_path, key, checkV3=False):
 
     if not tested_api_version:
         logger.debug(f'checkV3: "{checkV3}" for {instance_url}')
-        
+
     if checkV3:
-        api_version = 'v3/'
+        api_version = V3_API_PATH
 
     if checkV3 and is_sonarr:
         api_profile_path = 'qualityprofile'
@@ -317,6 +336,11 @@ def get_search_path(instance_url, key):
     logger.debug('get_search_path: {}'.format(url))
     return url
 
+def get_language_path(instance_url, key):
+    url = get_path(instance_url, api_language_path, key)
+    logger.debug('get_language_path: {}'.format(url))
+    return url
+
 def get_profile_path(instance_url, key):
     url = get_path(instance_url, api_profile_path, key)
     logger.debug('get_profile_path: {}'.format(url))
@@ -334,6 +358,7 @@ logger.debug({
     'instanceB_path': instanceB_path,
     'api_content_path': api_content_path,
     'api_search_path': api_search_path,
+    'api_language_path': api_language_path,
     'is_sonarr': is_sonarr,
     'is_lidarr': is_lidarr,
 })
