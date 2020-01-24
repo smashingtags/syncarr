@@ -23,7 +23,7 @@ from config import (
 )
 
 
-def get_new_content_payload(content, instance_path, instance_profile_id, instanceB_url):
+def get_new_content_payload(content, instance_path, instance_profile_id, instanceB_url, languageProfileId=None):
 
     images = content.get('images')
     for image in images:
@@ -43,7 +43,7 @@ def get_new_content_payload(content, instance_path, instance_profile_id, instanc
         payload['seasons'] = content.get('seasons')
         payload['tvRageId'] = content.get('tvRageId')
         payload['seasonFolder'] = content.get('seasonFolder')
-        payload['languageProfileId'] = content.get('languageProfileId')
+        payload['languageProfileId'] = languageProfileId if languageProfileId is not None else content.get('languageProfileId')
         payload['tags'] = content.get('tags')
         payload['seriesType'] = content.get('seriesType')
         payload['useSceneNumbering'] = content.get('useSceneNumbering')
@@ -53,7 +53,7 @@ def get_new_content_payload(content, instance_path, instance_profile_id, instanc
         payload['title'] = content.get('title')
         payload['tmdbId'] = content.get('tmdbId')
         payload['titleSlug'] = content.get('titleSlug')
-        
+
     elif is_lidarr:
         payload['artistName'] = content.get('artistName')
         payload['addOptions'] = content.get('addOptions', {})
