@@ -136,7 +136,7 @@ def search_synced(search_ids, instance_search_url, instance_session):
         instance_session.post(instance_search_url, data=json.dumps(payload))
 
 
-def sync_servers(instanceA_contents, instanceA_language_id, instanceB_contentIds,
+def sync_servers(instanceA_contents, instanceB_language_id, instanceB_contentIds,
                  instanceB_path, instanceB_profile_id, instanceB_session, 
                  instanceB_url, profile_filter_id, instanceB_key):
 
@@ -313,8 +313,8 @@ def sync_content():
     logger.info('syncing content from instance A to instance B')
     sync_servers(
         instanceA_contents=instanceA_contents, 
-        instanceA_language_id=instanceA_language_id,
         instanceB_contentIds=instanceB_contentIds, 
+        instanceB_language_id=instanceB_language_id,
         instanceB_path=instanceB_path, 
         instanceB_profile_id=instanceB_profile_id, 
         instanceB_session=instanceB_session, 
@@ -329,8 +329,8 @@ def sync_content():
 
         sync_servers(
             instanceA_contents=instanceB_contents, 
-            instanceA_language_id=instanceB_language_id,
             instanceB_contentIds=instanceA_contentIds, 
+            instanceB_language_id=instanceA_language_id,
             instanceB_path=instanceA_path, 
             instanceB_profile_id=instanceA_profile_id, 
             instanceB_session=instanceA_session, 
