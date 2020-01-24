@@ -289,7 +289,10 @@ elif sonarrA_url and sonarrB_url:
 
 def get_path(instance_url, api_path, key, checkV3=False):
     global api_version, api_profile_path
-    logger.debug(f'checkV3: "{checkV3}" for {instance_url}')
+
+    if not tested_api_version:
+        logger.debug(f'checkV3: "{checkV3}" for {instance_url}')
+        
     if checkV3:
         api_version = 'v3/'
 

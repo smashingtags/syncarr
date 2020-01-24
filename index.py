@@ -9,14 +9,17 @@ import sys
 import time
 
 from config import (
-    instanceA_url, instanceA_key, instanceA_profile,
-    instanceA_profile_id, instanceA_profile_filter, instanceA_path,
+    instanceA_url, instanceA_key,  instanceA_path, instanceA_profile,
+    instanceA_profile_id, instanceA_profile_filter, instanceA_profile_filter_id,
 
-    instanceB_url, instanceB_key, instanceB_profile, 
-    instanceB_profile_id, instanceB_profile_filter, instanceB_path,
-    
+    instanceB_url, instanceB_key, instanceB_path, instanceB_profile,
+    instanceB_profile_id, instanceB_profile_filter, instanceB_profile_filter_id,
+
     content_id_key, logger, is_sonarr, is_radarr, is_lidarr,
     get_status_path, get_content_path, get_search_path, get_profile_path,
+
+    is_in_docker, instance_sync_interval_seconds, sync_bidirectionally,
+    tested_api_version, api_version,
 )
 
 
@@ -50,6 +53,7 @@ def get_new_content_payload(content, instance_path, instance_profile_id, instanc
         payload['title'] = content.get('title')
         payload['tmdbId'] = content.get('tmdbId')
         payload['titleSlug'] = content.get('titleSlug')
+        
     elif is_lidarr:
         payload['artistName'] = content.get('artistName')
         payload['addOptions'] = content.get('addOptions', {})
