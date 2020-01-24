@@ -8,8 +8,16 @@ import configparser
 import sys
 import time
 
-from syncarr.config import *
-from syncarr.paths import *
+from config import (
+    instanceA_url, instanceA_key, instanceA_profile,
+    instanceA_profile_id, instanceA_profile_filter, instanceA_path,
+
+    instanceB_url, instanceB_key, instanceB_profile, 
+    instanceB_profile_id, instanceB_profile_filter, instanceB_path,
+    
+    content_id_key, logger, is_sonarr, is_radarr, is_lidarr,
+    get_status_path, get_content_path, get_search_path, get_profile_path,
+)
 
 
 def get_new_content_payload(content, instance_path, instance_profile_id, instanceB_url):
@@ -73,8 +81,7 @@ def get_profile_from_id(instance_session, instance_url, instance_key, instance_p
 
 def search_synced(search_ids, instance_search_url, instance_session):
     # now that we've synced all contents search for the newly synced contents
-    
-    instanceA_search_url = get_search_path(instanceA_url, instanceA_key)
+    instance_search_url = get_search_path(instanceA_url, instanceA_key)
 
     if len(search_ids):
         payload = { 'name': 'contentsSearch', 'contentIds': search_ids }
@@ -127,7 +134,7 @@ def get_instance_contents(instance_url, instance_key, instance_session, instance
     instance_content_url = get_content_path(instance_url, instance_key)
     instance_contents = instance_session.get(instance_content_url)
 
-    if instance_contents.status_code != requests.codes.ok:
+    if instance_contents.status_code != 200:
         logger.error('instance{} server error - response {}'.format(instance_name, instance_contents.status_code))
         sys.exit(0)
     else:
@@ -229,7 +236,7 @@ def sync_content():
     instanceB_contents, instanceB_contentIds = get_instance_contents(instanceB_url, instanceB_key, instanceB_session, instance_name='B')
 
     logger.info('syncing content from instance A to instance B')
-    search_ids = sync_servers(
+    sync_servers(
         instanceA_contents=instanceA_contents, 
         instanceB_contentIds=instanceB_contentIds, 
         instanceB_path=instanceB_path, 
@@ -244,7 +251,7 @@ def sync_content():
     if sync_bidirectionally:
         logger.info('syncing content from instance B to instance A')
 
-        search_ids = sync_servers(
+        sync_servers(
             instanceA_contents=instanceB_contents, 
             instanceB_contentIds=instanceA_contentIds, 
             instanceB_path=instanceA_path, 
